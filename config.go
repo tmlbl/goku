@@ -82,6 +82,10 @@ func listContainers() []*docker.Container {
 // Create a new config file based on the current state if none is given
 func createConfig() {
 	list := listContainers()
+	if len(list) < 1 {
+		fmt.Println("No containers found! Exiting...")
+		os.Exit(1)
+	}
 	js, err := json.MarshalIndent(list, "", "  ")
 	if err != nil {
 		panic(err)

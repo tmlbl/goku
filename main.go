@@ -30,6 +30,9 @@ func main() {
 		if arg == "init" {
 			createConfig()
 		}
+		if arg == "update" {
+			rollingUpdate()
+		}
 	}
 	success := parseConfig()
 	if !success {
