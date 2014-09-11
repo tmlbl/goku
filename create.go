@@ -15,6 +15,13 @@ func createContainer(con *docker.Container) {
 	opts.Config = &docker.Config{}
 	opts.Config.Cmd = con.Args
 	opts.Config.PortSpecs = translatePorts(con)
+	opts.Config.Volumes = translateVolumes(con)
+	cli := newClient()
+	con, err := cli.CreateContainer(opts)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Successfully created container", con)
 }
 
 func translatePorts(con *docker.Container) []string {
@@ -24,4 +31,13 @@ func translatePorts(con *docker.Container) []string {
 	}
 	fmt.Println("PORTS I GOT:", ports)
 	return ports
+}
+
+func translateVolumes(con *docker.Container) map[string]struct{} {
+	volumes := make(map[string]struct{})
+	for hostdir, condir := range con.Volumes {
+		key := hostdir + ":" + condir
+		volumes[key] = struct{}{}
+	}
+	return volumes
 }
