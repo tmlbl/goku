@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/ogier/pflag"
+	//"log"
 	"net/http"
 	"os"
 	"time"
@@ -32,7 +33,8 @@ func main() {
 	}
 	success := parseConfig()
 	if !success {
-		fmt.Println("Couldn't read the config files. Run shgod init to create them")
+		fmt.Println("Couldn't read the config files." +
+			"Run shgod init to create them.")
 		os.Exit(1)
 	}
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
@@ -56,7 +58,8 @@ func heartbeat() {
 				}
 			}
 			if !found {
-				checkState(docker.APIContainers{}, cfgCon)
+				fmt.Println("The container wasn't found1!!")
+				createContainer(cfgCon)
 			}
 		}
 	}

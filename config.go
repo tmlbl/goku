@@ -7,7 +7,6 @@ import (
 	"github.com/ogier/pflag"
 	"io/ioutil"
 	"os"
-	"strings"
 )
 
 var configFilePath = pflag.String(
@@ -16,7 +15,7 @@ var configFilePath = pflag.String(
 	"The container list to maintain",
 )
 
-type Config []docker.APIContainers
+type Config []*docker.Container
 
 var clusterConfig Config
 
@@ -34,19 +33,23 @@ func parseConfig() bool {
 	return true
 }
 
-// Check the current state agains the config state
-func checkState(con docker.APIContainers, cfgCon docker.APIContainers) {
-	up := strings.Contains(con.Status, "Up")
+// Check the current state against the config state
+func checkState(con *docker.Container, cfgCon *docker.Container) {
+	up := con.State.Running
 	if !up {
-		fmt.Println(cfgCon.Names, "is down, bringing it up...")
+		fmt.Println(cfgCon.Name, "is down, bringing it up...")
 		bringUpContainer(cfgCon)
 	} else {
-		fmt.Println(cfgCon.Names, "is up")
+		fmt.Println(cfgCon.Name, "is up")
 	}
 }
 
 // Attempts to start a container using its ID
-func bringUpContainer(cfgCon docker.APIContainers) {
+func bringUpContainer(cfgCon *docker.Container) {
+	if len(cfgCon.ID) < 10 {
+		fmt.Println("Container was not found, creating it...")
+		createContainer(cfgCon)
+	}
 	cli := newClient()
 	err := cli.StartContainer(cfgCon.ID, &docker.HostConfig{})
 	if err != nil {
@@ -56,7 +59,7 @@ func bringUpContainer(cfgCon docker.APIContainers) {
 }
 
 // Get the list of running containers
-func listContainers() []docker.APIContainers {
+func listContainers() []*docker.Container {
 	cli := newClient()
 	opts := docker.ListContainersOptions{
 		All: true,
@@ -65,7 +68,15 @@ func listContainers() []docker.APIContainers {
 	if err != nil {
 		panic(err)
 	}
-	return list
+	cons := []*docker.Container{}
+	for _, con := range list {
+		data, err := cli.InspectContainer(con.ID)
+		if err != nil {
+			panic(err)
+		}
+		cons = append(cons, data)
+	}
+	return cons
 }
 
 // Create a new config file based on the current state if none is given
