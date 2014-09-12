@@ -6,6 +6,7 @@ import (
 	"github.com/fsouza/go-dockerclient"
 	"github.com/ogier/pflag"
 	"io/ioutil"
+	"log"
 	"os"
 )
 
@@ -21,15 +22,15 @@ var clusterConfig Config
 
 // Read the config file into clusterConfig
 func parseConfig() bool {
-	fmt.Println("Parsing the config...")
+	log.Println("Parsing the config...")
 	data, err := ioutil.ReadFile(*configFilePath)
 	if err != nil {
-		fmt.Errorf("Couldn't read the config file!", err)
+		log.Println("Couldn't read the config file!", err)
 		return false
 	}
 	json.Unmarshal(data, &clusterConfig)
 	printcfg, _ := json.MarshalIndent(clusterConfig, "", "  ")
-	fmt.Println(string(printcfg))
+	log.Println(string(printcfg))
 	return true
 }
 
@@ -37,24 +38,24 @@ func parseConfig() bool {
 func checkState(con *docker.Container, cfgCon *docker.Container) {
 	up := con.State.Running
 	if !up {
-		fmt.Println(cfgCon.Name, "is down, bringing it up...")
+		log.Println(cfgCon.Name, "is down, bringing it up...")
 		bringUpContainer(cfgCon)
 	} else {
-		fmt.Println(cfgCon.Name, "is up")
+		log.Println(cfgCon.Name, "is up")
 	}
 }
 
 // Attempts to start a container using its ID
 func bringUpContainer(cfgCon *docker.Container) {
 	if len(cfgCon.ID) < 10 {
-		fmt.Println("Container was not found, creating it...")
+		log.Println("Container was not found, creating it...")
 		createContainer(cfgCon)
 	}
 	cli := newClient()
 	err := cli.StartContainer(cfgCon.ID, &docker.HostConfig{})
 	if err != nil {
-		fmt.Println("Error starting the container!")
-		fmt.Println(err)
+		log.Println("Error starting the container!")
+		log.Println(err)
 	}
 }
 
@@ -83,14 +84,14 @@ func listContainers() []*docker.Container {
 func createConfig() {
 	list := listContainers()
 	if len(list) < 1 {
-		fmt.Println("No containers found! Exiting...")
+		log.Println("No containers found! Exiting...")
 		os.Exit(1)
 	}
 	js, err := json.MarshalIndent(list, "", "  ")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(js))
+	log.Println(string(js))
 	fi, err := os.Create(*configFilePath)
 	if err != nil {
 		panic(err)

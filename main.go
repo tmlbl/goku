@@ -3,10 +3,9 @@
 package main
 
 import (
-	"fmt"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/ogier/pflag"
-	//"log"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -25,6 +24,7 @@ var interval = pflag.Duration(
 )
 
 func main() {
+	initLogger()
 	pflag.Parse()
 	for _, arg := range os.Args {
 		if arg == "init" {
@@ -36,7 +36,7 @@ func main() {
 	}
 	success := parseConfig()
 	if !success {
-		fmt.Println("Couldn't read the config files." +
+		log.Println("Couldn't read the config files." +
 			"Run shgod init to create them.")
 		os.Exit(1)
 	}
@@ -50,7 +50,7 @@ func main() {
 func heartbeat() {
 	for {
 		time.Sleep(*interval)
-		fmt.Println("Heartbeat")
+		log.Println("Heartbeat")
 		list := listContainers()
 		for _, cfgCon := range clusterConfig {
 			found := false
@@ -61,7 +61,7 @@ func heartbeat() {
 				}
 			}
 			if !found {
-				fmt.Println("The container wasn't found1!!")
+				log.Println("The container wasn't found1!!")
 				createContainer(cfgCon)
 			}
 		}
@@ -71,8 +71,7 @@ func heartbeat() {
 func newClient() *docker.Client {
 	cli, err := docker.NewClient(*endpoint)
 	if err != nil {
-		fmt.Println("Failed to connect to docker! Error:")
-		fmt.Println(err)
+		log.Fatalln("Failed to connect to docker!", err)
 	}
 	return cli
 }
