@@ -22,27 +22,16 @@ var clusterConfig Config
 
 // Read the config file into clusterConfig
 func parseConfig() bool {
-	log.Println("Parsing the config...")
 	data, err := ioutil.ReadFile(*configFilePath)
 	if err != nil {
 		log.Println("Couldn't read the config file!", err)
 		return false
 	}
-	json.Unmarshal(data, &clusterConfig)
-	printcfg, _ := json.MarshalIndent(clusterConfig, "", "  ")
-	log.Println(string(printcfg))
-	return true
-}
-
-// Check the current state against the config state
-func checkState(con *docker.Container, cfgCon *docker.Container) {
-	up := con.State.Running
-	if !up {
-		log.Println(cfgCon.Name, "is down, bringing it up...")
-		bringUpContainer(cfgCon)
-	} else {
-		log.Println(cfgCon.Name, "is up")
+	err = json.Unmarshal(data, &clusterConfig)
+	if err != nil {
+		log.Println("Couldn't parse config!", err)
 	}
+	return true
 }
 
 // Attempts to start a container using its ID
@@ -92,6 +81,31 @@ func createConfig() {
 		panic(err)
 	}
 	log.Println(string(js))
+	fi, err := os.Create(*configFilePath)
+	if err != nil {
+		panic(err)
+	}
+	fmt.Fprintf(fi, string(js))
+}
+
+// Reads new container information into config after an update
+func updateConfig() {
+	log.Println("Updating the config...")
+	list := listContainers()
+	up := []*docker.Container{}
+	for _, cfgCon := range clusterConfig {
+		for _, con := range list {
+			if cfgCon.Name == con.Name {
+				log.Println("Adding", con.Name, "to config")
+				up = append(up, con)
+			}
+		}
+	}
+	js, err := json.MarshalIndent(up, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+	log.Println("Updated the config", string(js))
 	fi, err := os.Create(*configFilePath)
 	if err != nil {
 		panic(err)

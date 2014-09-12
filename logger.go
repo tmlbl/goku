@@ -23,5 +23,4 @@ func initLogger() {
 		}
 		log.SetOutput(fi)
 	}
-	log.Println("FOOFOFOFO")
 }

@@ -2,8 +2,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/fsouza/go-dockerclient"
+	"log"
 )
 
 func createContainer(con *docker.Container) {
@@ -16,11 +16,7 @@ func createContainer(con *docker.Container) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("Successfully created container", con)
-	// Update the clusterConfig
-	// TODO: Instead of reinitializing clusterConfig, write only the changes
-	createConfig()
-	parseConfig()
+	log.Println("Successfully created container", con)
 	// Start the container
-	cli.StartContainer(newCon.ID, &docker.HostConfig{})
+	cli.StartContainer(newCon.ID, con.HostConfig)
 }

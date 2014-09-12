@@ -3,6 +3,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/ogier/pflag"
 	"log"
@@ -31,17 +32,22 @@ func main() {
 			createConfig()
 		}
 		if arg == "update" {
-			rollingUpdate()
+			rollingUpdate(os.Args[2:])
 		}
 	}
 	success := parseConfig()
 	if !success {
 		log.Println("Couldn't read the config files." +
-			"Run shgod init to create them.")
+			" Run shgod init to create them.")
 		os.Exit(1)
 	}
+	js, err := json.MarshalIndent(clusterConfig, "", "  ")
+	if err != nil {
+		log.Panicln("Malformed json in config!", err)
+	}
+	log.Println(string(js))
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		res.Write([]byte("OK\n"))
+		res.Write(js)
 	})
 	go heartbeat()
 	http.ListenAndServe(":6600", nil)
@@ -50,7 +56,7 @@ func main() {
 func heartbeat() {
 	for {
 		time.Sleep(*interval)
-		log.Println("Heartbeat")
+		log.Println(time.Now().String())
 		list := listContainers()
 		for _, cfgCon := range clusterConfig {
 			found := false
@@ -63,8 +69,10 @@ func heartbeat() {
 			if !found {
 				log.Println("The container wasn't found1!!")
 				createContainer(cfgCon)
+				updateConfig()
 			}
 		}
+		parseConfig()
 	}
 }
 

@@ -2,29 +2,28 @@
 package main
 
 import (
-	"fmt"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/ogier/pflag"
+	"log"
 	"os"
 	"time"
 )
 
 var updateInterval = pflag.Duration(
 	"update-interval",
-	1000*time.Millisecond,
+	5000*time.Millisecond,
 	"The time interval for rolling updates",
 )
 
-func rollingUpdate() {
-	fmt.Println("Starting a rolling update...")
+func rollingUpdate(imgs []string) {
+	log.Println("Starting a rolling update...")
 	cli := newClient()
 	list := listContainers()
-	for _, name := range os.Args[2:] {
-		time.Sleep(*updateInterval)
+	for _, img := range imgs {
 		found := false
 		for _, con := range list {
-			if con.Name[1:] == name {
-				fmt.Println("Updating", name)
+			if con.Config.Image == img {
+				log.Println("Updating container", con.Name)
 				err := cli.StopContainer(con.ID, 0)
 				if err != nil {
 					panic(err)
@@ -37,10 +36,11 @@ func rollingUpdate() {
 					panic(err)
 				}
 				found = true
+				time.Sleep(*updateInterval)
 			}
 		}
 		if !found {
-			fmt.Println(name, ": Container not found!")
+			log.Println("No containers found for image", img)
 		}
 	}
 	os.Exit(0)
