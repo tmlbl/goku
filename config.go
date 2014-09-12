@@ -41,7 +41,7 @@ func bringUpContainer(cfgCon *docker.Container) {
 		createContainer(cfgCon)
 	}
 	cli := newClient()
-	err := cli.StartContainer(cfgCon.ID, &docker.HostConfig{})
+	err := cli.StartContainer(cfgCon.ID, cfgCon.HostConfig)
 	if err != nil {
 		log.Println("Error starting the container!")
 		log.Println(err)
