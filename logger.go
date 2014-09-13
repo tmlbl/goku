@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/mgutz/ansi"
 	"github.com/ogier/pflag"
 	"log"
 	"os"
@@ -19,8 +20,13 @@ func initLogger() {
 	} else {
 		fi, err := os.Create(*logFilePath)
 		if err != nil {
-			panic(err)
+			logErr(err)
 		}
 		log.SetOutput(fi)
 	}
+}
+
+func logErr(err error) {
+	se := err.Error()
+	log.Println(ansi.Color("Received an error:", "red"), "\n\t", se)
 }

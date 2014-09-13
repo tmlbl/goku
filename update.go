@@ -21,19 +21,20 @@ func rollingUpdate(imgs []string) {
 	list := listContainers()
 	for _, img := range imgs {
 		found := false
+		pullImg(img)
 		for _, con := range list {
 			if con.Config.Image == img {
 				log.Println("Updating container", con.Name)
 				err := cli.StopContainer(con.ID, 0)
 				if err != nil {
-					panic(err)
+					logErr(err)
 				}
 				opts := docker.RemoveContainerOptions{
 					ID: con.ID,
 				}
 				err = cli.RemoveContainer(opts)
 				if err != nil {
-					panic(err)
+					logErr(err)
 				}
 				found = true
 				time.Sleep(*updateInterval)
@@ -44,4 +45,18 @@ func rollingUpdate(imgs []string) {
 		}
 	}
 	os.Exit(0)
+}
+
+func pullImg(img string) {
+	log.Println("Pulling image", img, "...")
+	cli := newClient()
+	opts := docker.PullImageOptions{
+		OutputStream: os.Stdout,
+		Repository:   img,
+		Tag:          "latest",
+	}
+	err := cli.PullImage(opts, docker.AuthConfiguration{})
+	if err != nil {
+		logErr(err)
+	}
 }

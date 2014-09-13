@@ -7,6 +7,8 @@ import (
 )
 
 func createContainer(con *docker.Container) {
+	// Delete a conflicting container if it exists
+	removeContainer(con)
 	opts := docker.CreateContainerOptions{
 		Name:   con.Name,
 		Config: con.Config,
@@ -14,9 +16,18 @@ func createContainer(con *docker.Container) {
 	cli := newClient()
 	newCon, err := cli.CreateContainer(opts)
 	if err != nil {
-		panic(err)
+		logErr(err)
 	}
 	log.Println("Successfully created container", con)
 	// Start the container
 	cli.StartContainer(newCon.ID, con.HostConfig)
+}
+
+func removeContainer(con *docker.Container) {
+	cli := newClient()
+	opts := docker.RemoveContainerOptions{
+		ID:    con.ID,
+		Force: true,
+	}
+	cli.RemoveContainer(opts)
 }

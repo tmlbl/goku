@@ -3,9 +3,9 @@
 package main
 
 import (
-	"encoding/json"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/ogier/pflag"
+	"gopkg.in/yaml.v1"
 	"log"
 	"net/http"
 	"os"
@@ -41,13 +41,14 @@ func main() {
 			" Run shgod init to create them.")
 		os.Exit(1)
 	}
-	js, err := json.MarshalIndent(clusterConfig, "", "  ")
+	y, err := yaml.Marshal(clusterConfig)
 	if err != nil {
-		log.Panicln("Malformed json in config!", err)
+		log.Panicln("Malformed yaml in config!", err)
 	}
-	log.Println(string(js))
+	s := string(y)
+	log.Println(s)
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		res.Write(js)
+		res.Write(y)
 	})
 	go heartbeat()
 	http.ListenAndServe(":6600", nil)
@@ -61,18 +62,17 @@ func heartbeat() {
 		for _, cfgCon := range clusterConfig {
 			found := false
 			for _, con := range list {
-				if con.ID == cfgCon.ID {
+				if con.Name == cfgCon.Name {
 					checkState(con, cfgCon)
 					found = true
 				}
 			}
 			if !found {
-				log.Println("The container wasn't found1!!")
+				log.Println("No container found for", cfgCon.Name)
 				createContainer(cfgCon)
 				updateConfig()
 			}
 		}
-		parseConfig()
 	}
 }
 

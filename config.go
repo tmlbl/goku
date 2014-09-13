@@ -1,10 +1,10 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"github.com/fsouza/go-dockerclient"
 	"github.com/ogier/pflag"
+	"gopkg.in/yaml.v1"
 	"io/ioutil"
 	"log"
 	"os"
@@ -12,7 +12,7 @@ import (
 
 var configFilePath = pflag.String(
 	"config",
-	"./containers.json",
+	"./containers.yml",
 	"The container list to maintain",
 )
 
@@ -27,7 +27,7 @@ func parseConfig() bool {
 		log.Println("Couldn't read the config file!", err)
 		return false
 	}
-	err = json.Unmarshal(data, &clusterConfig)
+	err = yaml.Unmarshal(data, &clusterConfig)
 	if err != nil {
 		log.Println("Couldn't parse config!", err)
 	}
@@ -56,15 +56,14 @@ func listContainers() []*docker.Container {
 	}
 	list, err := cli.ListContainers(opts)
 	if err != nil {
-		panic(err)
+		logErr(err)
 	}
 	cons := []*docker.Container{}
 	for _, con := range list {
-		data, err := cli.InspectContainer(con.ID)
-		if err != nil {
-			panic(err)
+		data, _ := cli.InspectContainer(con.ID)
+		if data.Name != "" {
+			cons = append(cons, data)
 		}
-		cons = append(cons, data)
 	}
 	return cons
 }
@@ -76,16 +75,17 @@ func createConfig() {
 		log.Println("No containers found! Exiting...")
 		os.Exit(1)
 	}
-	js, err := json.MarshalIndent(list, "", "  ")
+	y, err := yaml.Marshal(list)
 	if err != nil {
-		panic(err)
+		logErr(err)
 	}
-	log.Println(string(js))
+	s := string(y)
+	log.Println(s)
 	fi, err := os.Create(*configFilePath)
 	if err != nil {
-		panic(err)
+		logErr(err)
 	}
-	fmt.Fprintf(fi, string(js))
+	fmt.Fprintf(fi, s)
 }
 
 // Reads new container information into config after an update
@@ -101,14 +101,15 @@ func updateConfig() {
 			}
 		}
 	}
-	js, err := json.MarshalIndent(up, "", "  ")
+	y, err := yaml.Marshal(up)
 	if err != nil {
-		panic(err)
+		logErr(err)
 	}
-	log.Println("Updated the config", string(js))
+	s := string(y)
+	log.Println("Updated the config", s)
 	fi, err := os.Create(*configFilePath)
 	if err != nil {
-		panic(err)
+		logErr(err)
 	}
-	fmt.Fprintf(fi, string(js))
+	fmt.Fprintf(fi, s)
 }
