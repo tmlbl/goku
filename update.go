@@ -44,7 +44,6 @@ func rollingUpdate(imgs []string) {
 			log.Println("No containers found for image", img)
 		}
 	}
-	os.Exit(0)
 }
 
 func pullImg(img string) {

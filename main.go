@@ -7,7 +7,6 @@ import (
 	"github.com/ogier/pflag"
 	"gopkg.in/yaml.v1"
 	"log"
-	"net/http"
 	"os"
 	"time"
 )
@@ -33,6 +32,7 @@ func main() {
 		}
 		if arg == "update" {
 			rollingUpdate(os.Args[2:])
+			os.Exit(0)
 		}
 	}
 	success := parseConfig()
@@ -45,34 +45,17 @@ func main() {
 	if err != nil {
 		log.Panicln("Malformed yaml in config!", err)
 	}
+	go heartbeat()
 	s := string(y)
 	log.Println(s)
-	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
-		res.Write(y)
-	})
-	go heartbeat()
-	http.ListenAndServe(":6600", nil)
+	serve()
 }
 
 func heartbeat() {
 	for {
 		time.Sleep(*interval)
 		log.Println(time.Now().String())
-		list := listContainers()
-		for _, cfgCon := range clusterConfig {
-			found := false
-			for _, con := range list {
-				if con.Name == cfgCon.Name {
-					checkState(con, cfgCon)
-					found = true
-				}
-			}
-			if !found {
-				log.Println("No container found for", cfgCon.Name)
-				createContainer(cfgCon)
-				updateConfig()
-			}
-		}
+		checkState()
 	}
 }
 

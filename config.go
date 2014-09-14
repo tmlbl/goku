@@ -24,12 +24,12 @@ var clusterConfig Config
 func parseConfig() bool {
 	data, err := ioutil.ReadFile(*configFilePath)
 	if err != nil {
-		log.Println("Couldn't read the config file!", err)
+		logErr(err)
 		return false
 	}
 	err = yaml.Unmarshal(data, &clusterConfig)
 	if err != nil {
-		log.Println("Couldn't parse config!", err)
+		logErr(err)
 	}
 	return true
 }
@@ -43,12 +43,11 @@ func bringUpContainer(cfgCon *docker.Container) {
 	cli := newClient()
 	err := cli.StartContainer(cfgCon.ID, cfgCon.HostConfig)
 	if err != nil {
-		log.Println("Error starting the container!")
-		log.Println(err)
+		logErr(err)
 	}
 }
 
-// Get the list of running containers
+// Get a list of inspected containers
 func listContainers() []*docker.Container {
 	cli := newClient()
 	opts := docker.ListContainersOptions{
@@ -60,8 +59,8 @@ func listContainers() []*docker.Container {
 	}
 	cons := []*docker.Container{}
 	for _, con := range list {
-		data, _ := cli.InspectContainer(con.ID)
-		if data.Name != "" {
+		data, err := cli.InspectContainer(con.ID)
+		if err == nil {
 			cons = append(cons, data)
 		}
 	}
@@ -96,7 +95,6 @@ func updateConfig() {
 	for _, cfgCon := range clusterConfig {
 		for _, con := range list {
 			if cfgCon.Name == con.Name {
-				log.Println("Adding", con.Name, "to config")
 				up = append(up, con)
 			}
 		}
@@ -106,7 +104,6 @@ func updateConfig() {
 		logErr(err)
 	}
 	s := string(y)
-	log.Println("Updated the config", s)
 	fi, err := os.Create(*configFilePath)
 	if err != nil {
 		logErr(err)

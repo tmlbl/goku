@@ -18,7 +18,7 @@ func createContainer(con *docker.Container) {
 	if err != nil {
 		logErr(err)
 	}
-	log.Println("Successfully created container", con)
+	log.Println("Successfully created container for", con.Name)
 	// Start the container
 	cli.StartContainer(newCon.ID, con.HostConfig)
 }
