@@ -5,7 +5,7 @@ package main
 import (
 	"github.com/fsouza/go-dockerclient"
 	"github.com/ogier/pflag"
-	"gopkg.in/yaml.v1"
+	//"gopkg.in/yaml.v1"
 	"log"
 	"os"
 	"time"
@@ -24,8 +24,8 @@ var interval = pflag.Duration(
 )
 
 func main() {
-	initLogger()
 	pflag.Parse()
+	initLogger()
 	for _, arg := range os.Args {
 		if arg == "init" {
 			createConfig()
@@ -41,13 +41,11 @@ func main() {
 			" Run shgod init to create them.")
 		os.Exit(1)
 	}
-	y, err := yaml.Marshal(clusterConfig)
-	if err != nil {
-		log.Panicln("Malformed yaml in config!", err)
+	log.Println("Using config with containers:")
+	for _, con := range clusterConfig {
+		log.Println(con.Name)
 	}
 	go heartbeat()
-	s := string(y)
-	log.Println(s)
 	serve()
 }
 

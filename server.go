@@ -3,6 +3,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"github.com/ogier/pflag"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,6 +17,12 @@ type Webhook struct {
 type Repository struct {
 	RepoName string `json:"repo_name"`
 }
+
+var port = pflag.Int32(
+	"port",
+	6600,
+	"Port to listen for webhooks on",
+)
 
 func serve() {
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
@@ -33,5 +41,7 @@ func serve() {
 		res.Write([]byte("OK"))
 		go rollingUpdate([]string{hook.Repository.RepoName})
 	})
-	http.ListenAndServe(":6600", nil)
+	portcfg := fmt.Sprintf(":%d", *port)
+	log.Println("Listening at", portcfg)
+	http.ListenAndServe(portcfg, nil)
 }
