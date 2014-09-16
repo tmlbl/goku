@@ -51,6 +51,7 @@ func main() {
 
 func heartbeat() {
 	for {
+		parseConfig()
 		time.Sleep(*interval)
 		log.Println(time.Now().String())
 		checkState()

@@ -27,6 +27,7 @@ func parseConfig() bool {
 		logErr(err)
 		return false
 	}
+	clusterConfig = Config{}
 	err = yaml.Unmarshal(data, &clusterConfig)
 	if err != nil {
 		logErr(err)
