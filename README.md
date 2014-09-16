@@ -7,7 +7,7 @@ A lightweight and simple tool that facilitates continuous deployment of docker c
 ### Installation
 Installation is as simple as downloading the binary and making it executable. On a Debian system, you might run something like this:
 ````
-sudo curl -o /usr/bin/shgod https://s3-us-west-2.amazonaws.com/shgod/shgod \
+sudo curl -o /usr/bin/shgod https://github.com/tmlbl/shgod/raw/master/shgod \
   && sudo chmod +x /usr/bin/shgod
 ````
 Alternatively, if you have a go enviroment on your system, it can be easily compiled from source:
