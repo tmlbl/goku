@@ -6,6 +6,7 @@ import (
 	"github.com/ogier/pflag"
 	"log"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -23,7 +24,12 @@ func rollingUpdate(imgs []string) {
 		found := false
 		pullImg(img)
 		for _, con := range list {
-			if con.Config.Image == img {
+			// Remove tags
+			compare := con.Config.Image
+			if strings.Contains(compare, ":") {
+				compare = strings.Split(con.Config.Image, ":")[0]
+			}
+			if compare == img {
 				log.Println("Updating container", con.Name)
 				err := cli.StopContainer(con.ID, 0)
 				if err != nil {
@@ -52,7 +58,7 @@ func pullImg(img string) {
 	opts := docker.PullImageOptions{
 		OutputStream: os.Stdout,
 		Repository:   img,
-		Tag:          "latest",
+		//Tag:          "latest",
 	}
 	err := cli.PullImage(opts, docker.AuthConfiguration{})
 	if err != nil {
