@@ -1,0 +1,23 @@
+{
+	"ImportPath": "github.com/tmlbl/shgod",
+	"GoVersion": "go1.3.1",
+	"Deps": [
+		{
+			"ImportPath": "github.com/fsouza/go-dockerclient",
+			"Comment": "0.2.1-253-g0236a64",
+			"Rev": "0236a64c6c4bd563ec277ba00e370cc753e1677c"
+		},
+		{
+			"ImportPath": "github.com/mgutz/ansi",
+			"Rev": "376eb392d7d7e2ae025da0037c73cf8c20a428d8"
+		},
+		{
+			"ImportPath": "github.com/ogier/pflag",
+			"Rev": "e4f7d00f344b0954fa3791a8527d10ba7334eceb"
+		},
+		{
+			"ImportPath": "gopkg.in/yaml.v1",
+			"Rev": "9f9df34309c04878acc86042b16630b0f696e1de"
+		}
+	]
+}

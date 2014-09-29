@@ -58,7 +58,7 @@ func pullImg(img string) {
 	opts := docker.PullImageOptions{
 		OutputStream: os.Stdout,
 		Repository:   img,
-		//Tag:          "latest",
+		Tag:          "",
 	}
 	err := cli.PullImage(opts, docker.AuthConfiguration{})
 	if err != nil {
