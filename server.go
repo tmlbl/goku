@@ -35,6 +35,7 @@ func serve() {
 		err = json.Unmarshal(body, hook)
 		if err != nil {
 			logErr(err)
+			res.Write([]byte("OK"))
 			return
 		}
 		log.Println("Received webhook for", hook.Repository.RepoName)
